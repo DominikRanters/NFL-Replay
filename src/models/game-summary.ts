@@ -28,7 +28,7 @@ interface Linescores {
 	displayValue: number;
 }
 
-interface Drive {
+export interface Drive {
 	displayResult: string;
 	shortDisplayResult: string;
 	isScore: boolean;
@@ -58,7 +58,7 @@ interface Period {
 	type: string;
 }
 
-interface Play {
+export interface Play {
 	sequenceNumber: string;
 	scoringPlay: boolean;
 	priority: boolean;
