@@ -8,9 +8,14 @@
 	import { AppBar, AppShell, Drawer, Modal, Toast, drawerStore } from '@skeletonlabs/skeleton';
 	import Navigation from '$lib/components/Navigation.svelte';
 
+	import { headerText } from '$lib/stores';
+
 	function drawerOpen(): void {
 		drawerStore.open();
 	}
+
+	let header = '';
+	headerText.subscribe((preVal) => (header = preVal));
 </script>
 
 <Toast position="tr" />
@@ -22,8 +27,8 @@
 <AppShell slotSidebarLeft="w-0 md:w-52 bg-surface-500/10">
 	<svelte:fragment slot="header">
 		<AppBar>
-			<svelte:fragment slot="lead">
-				<button class="md:hidden btn btn-sm mr-4" on:click={drawerOpen}>
+			<!-- <svelte:fragment slot="lead"> -->
+			<!-- <button class="md:hidden btn btn-sm mr-4" on:click={drawerOpen}>
 					<span>
 						<svg viewBox="0 0 100 80" class="fill-token w-4 h-4">
 							<rect width="100" height="20" />
@@ -31,18 +36,24 @@
 							<rect y="60" width="100" height="20" />
 						</svg>
 					</span>
-				</button>
-				<span class="pl-2" />
-				<i class="fa-solid fa-arrow-left text-2xl" />
-			</svelte:fragment>
-			<strong class="text-xl text-center uppercase">Overview</strong>
+				</button> -->
+
+			<svelte:fragment slot="lead"
+				><a href="/overview">
+					<i class="fa-solid fa-arrow-left text-2xl" />
+				</a></svelte:fragment
+			>
+			<div class="pl-6">
+				<h1 class="h1 uppercase">{header}</h1>
+			</div>
+			<!-- </svelte:fragment> -->
 		</AppBar>
 	</svelte:fragment>
 	<svelte:fragment slot="sidebarLeft">
 		<Navigation />
 	</svelte:fragment>
 	<!-- Router Slot -->
-	<div class="container p-10 mx-auto">
+	<div>
 		<slot />
 	</div>
 	<!-- ---- / ---- -->

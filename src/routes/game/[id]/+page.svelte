@@ -1,0 +1,79 @@
+<script lang="ts">
+	import PlayListItem from '$lib/components/PlayListItem.svelte';
+	import { onDestroy, onMount } from 'svelte';
+	import type { Drive, Play } from '../../../models/game-summary';
+	import DrivComponent from '../drive.svelte';
+	import { headerText } from '$lib/stores';
+
+	export let data;
+	const { gameSummary } = data;
+	const orginalDrives = gameSummary.drives.previous;
+
+	const intervallDelay = 2000;
+
+	$: drives = [] as Drive[];
+	$: playIndex = 0;
+
+	let interval: ReturnType<typeof setInterval>;
+
+	onMount(() => {
+		const homeTeam = gameSummary.teams.find((t) => t.homeAway === 'home')?.team;
+		const awayTeam = gameSummary.teams.find((t) => t.homeAway === 'away')?.team;
+		headerText.set(`${homeTeam?.nickname} vs. ${awayTeam?.nickname}`);
+
+		interval = setInterval(() => {
+			console.log('🚀 ~ file: +page.svelte:25 ~ interval=setInterval ~ setInterval:', setInterval);
+			if (
+				drives.length > 0 &&
+				drives[0].plays.length < orginalDrives[drives.length - 1].plays.length
+			) {
+				// Add next play to current drive
+				const tempDrives = [...drives];
+
+				const lastDrive = tempDrives[0];
+				const indexThisDrive = tempDrives.length - 1;
+				const indexLastPlay = lastDrive.plays.length;
+
+				// set finished
+				const isLastPlay = indexLastPlay === orginalDrives[indexThisDrive].plays.length - 1;
+				lastDrive.finished = isLastPlay;
+
+				// create and add next play
+				const nextPlay = orginalDrives[indexThisDrive].plays[indexLastPlay];
+				lastDrive.plays = [nextPlay, ...lastDrive.plays];
+
+				drives = tempDrives;
+			} else if (drives.length < orginalDrives.length) {
+				// Add next drive
+				const tempDrives = [...drives];
+				const indexLastDrive = tempDrives.length - 1;
+
+				// create and add next drive
+				const nextDrive = { ...orginalDrives[indexLastDrive + 1] };
+				const nextDriveWithOutPlays: Drive = {
+					...nextDrive,
+					plays: []
+				};
+
+				drives = [nextDriveWithOutPlays, ...tempDrives];
+			} else {
+				clearInterval(interval);
+			}
+		}, intervallDelay);
+	});
+
+	onDestroy(() => {
+		clearInterval(interval);
+	});
+</script>
+
+{#each drives as drive (drive.id)}
+	<div class="pb-10">
+		<DrivComponent {drive} teams={gameSummary.teams} />
+		{#each drive.plays as play (play.id)}
+			<div class="m-2">
+				<PlayListItem {play} />
+			</div>
+		{/each}
+	</div>
+{/each}

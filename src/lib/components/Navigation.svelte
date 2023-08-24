@@ -8,6 +8,6 @@
 
 <nav class="list-nav p-4">
 	<ul>
-		<li><a href="/game" on:click={drawerClose}>Game</a></li>
+		<li><a href="/overview" on:click={drawerClose}>Overview</a></li>
 	</ul>
 </nav>

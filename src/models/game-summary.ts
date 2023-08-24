@@ -1,10 +1,12 @@
+import { PlayTypes } from './play-types';
+
 export interface GameSummary {
 	id: number;
 	teams: TeamSummary[];
 	drives: { previous: Drive[] };
 }
 
-interface TeamSummary {
+export interface TeamSummary {
 	record: TeamRecord;
 	homeAway: 'home' | 'away';
 	score: number;
@@ -21,7 +23,8 @@ interface Team {
 	displayName: string;
 	name: string;
 	nickname: string;
-	logos: any[]; // TODO need to add interface
+	abbreviation: string;
+	logos: Logo[];
 }
 
 interface Linescores {
@@ -29,6 +32,7 @@ interface Linescores {
 }
 
 export interface Drive {
+	id: number;
 	displayResult: string;
 	shortDisplayResult: string;
 	isScore: boolean;
@@ -36,6 +40,7 @@ export interface Drive {
 	team: DriveTeam;
 	start: DriveStart;
 	plays: Play[];
+	finished: boolean;
 }
 
 interface DriveTeam {
@@ -43,7 +48,11 @@ interface DriveTeam {
 	displayName: string;
 	name: string;
 	abbreviation: string;
-	logos: any[]; // TODO need to add interface
+	logos: Logo[];
+}
+
+interface Logo {
+	href: string; // https://a.espncdn.com/i/teamlogos/nfl/500/sf.png
 }
 
 interface DriveStart {
@@ -59,16 +68,27 @@ interface Period {
 }
 
 export interface Play {
+	id: number;
 	sequenceNumber: string;
+	homeScore: number;
+	awayScore: number;
 	scoringPlay: boolean;
 	priority: boolean;
 	statYardage: number;
+	start: PlayStart;
+	clock: { displayValue: string };
+	period: { number: number };
 	text: string;
 	type: PlayType;
 }
 
-interface PlayType {
-	id: number;
+interface PlayStart {
+	shortDownDistanceText?: string;
+	possessionText?: string;
+}
+
+export interface PlayType {
+	id: PlayTypes;
 	text: string;
 	abbreviation: string;
 }
