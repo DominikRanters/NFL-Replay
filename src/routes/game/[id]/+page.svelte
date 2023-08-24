@@ -1,26 +1,33 @@
 <script lang="ts">
 	import PlayListItem from '$lib/components/PlayListItem.svelte';
 	import { onDestroy, onMount } from 'svelte';
-	import type { Drive, Play } from '../../../models/game-summary';
+	import type { Drive } from '../../../models/game-summary';
 	import DrivComponent from '../drive.svelte';
 	import { headerText } from '$lib/stores';
+	import ControlButtons from '$lib/components/ControlButtons.svelte';
 
 	export let data;
 	const { gameSummary } = data;
 	const orginalDrives = gameSummary.drives?.previous || [];
 
-	const intervallDelay = 100;
+	const intervallDelay = 1000;
 
+	$: isPause = false;
 	$: drives = [] as Drive[];
-	$: playIndex = 0;
 
 	let interval: ReturnType<typeof setInterval>;
 
-	onMount(() => {
-		const homeTeam = gameSummary.teams.find((t) => t.homeAway === 'home')?.team;
-		const awayTeam = gameSummary.teams.find((t) => t.homeAway === 'away')?.team;
-		headerText.set(`${homeTeam?.abbreviation} vs. ${awayTeam?.abbreviation}`);
+	const togglePause = () => {
+		isPause = !isPause;
 
+		if (isPause) {
+			clearInterval(interval);
+		} else {
+			intervalNextPlay();
+		}
+	};
+
+	const intervalNextPlay = () => {
 		interval = setInterval(() => {
 			if (
 				drives.length > 0 &&
@@ -59,6 +66,14 @@
 				clearInterval(interval);
 			}
 		}, intervallDelay);
+	};
+
+	onMount(() => {
+		const homeTeam = gameSummary.teams.find((t) => t.homeAway === 'home')?.team;
+		const awayTeam = gameSummary.teams.find((t) => t.homeAway === 'away')?.team;
+		headerText.set(`${homeTeam?.abbreviation} vs. ${awayTeam?.abbreviation}`);
+
+		intervalNextPlay();
 	});
 
 	onDestroy(() => {
@@ -76,3 +91,4 @@
 		{/each}
 	</div>
 {/each}
+<ControlButtons {isPause} {togglePause} />

@@ -5,17 +5,22 @@
 	import '@skeletonlabs/skeleton/styles/all.css';
 	// Most of your app wide CSS should be put in this file
 	import '../app.postcss';
-	import { AppBar, AppShell, Drawer, Modal, Toast, drawerStore } from '@skeletonlabs/skeleton';
+	import { AppBar, AppShell, Drawer, Modal, Toast } from '@skeletonlabs/skeleton';
 	import Navigation from '$lib/components/Navigation.svelte';
+	import { afterUpdate } from 'svelte';
 
 	import { headerText } from '$lib/stores';
 
-	function drawerOpen(): void {
-		drawerStore.open();
-	}
-
 	let header = '';
 	headerText.subscribe((preVal) => (header = preVal));
+
+	$: url = '';
+	$: isOverviewPage = false;
+
+	afterUpdate(() => {
+		url = window?.location?.href || '';
+		isOverviewPage = url.endsWith('/overview');
+	});
 </script>
 
 <Toast position="tr" />
@@ -37,12 +42,13 @@
 						</svg>
 					</span>
 				</button> -->
-
-			<svelte:fragment slot="lead"
-				><a href="/overview">
-					<i class="fa-solid fa-arrow-left text-2xl" />
-				</a></svelte:fragment
-			>
+			<svelte:fragment slot="lead">
+				{#if !isOverviewPage}
+					<a href="/overview">
+						<i class="fa-solid fa-arrow-left text-2xl" />
+					</a>
+				{/if}
+			</svelte:fragment>
 			<div class="pl-6">
 				<h1 class="h1 uppercase">{header}</h1>
 			</div>
