@@ -3,7 +3,7 @@ import { PlayTypes } from './play-types';
 export interface GameSummary {
 	id: number;
 	teams: TeamSummary[];
-	drives: { previous: Drive[] };
+	drives?: { previous: Drive[] };
 }
 
 export interface TeamSummary {

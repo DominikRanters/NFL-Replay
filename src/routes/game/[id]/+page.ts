@@ -2,31 +2,58 @@ import type { GameSummary, PlayType } from '../../../models/game-summary';
 import GameSummaryJson from '$lib/49ers_vs_Raiders.json';
 import { PlayTypes } from '../../../models/play-types';
 
-export const load = async ({ fetch }: any): Promise<{ gameSummary: GameSummary }> => {
-	const summary: GameSummary = GameSummaryJson as unknown as GameSummary;
-	summary.drives.previous = summary.drives.previous.map((drive) => {
-		const newPlays = drive.plays.filter((play) => Number(play.type.id) != PlayTypes.OfficalTimeout);
+interface LoadParam {
+	fetch: any;
+	params: {
+		id: number;
+	};
+}
 
-		return {
-			...drive,
-			plays: newPlays
-		};
-	});
+export const load = async ({ fetch, params }: LoadParam): Promise<{ gameSummary: GameSummary }> => {
+	const url = `https://nfl-api1.p.rapidapi.com/nflsummary?id=${params.id}`;
+	const options = {
+		method: 'GET',
+		headers: {
+			'X-RapidAPI-Key': 'c0cff608d4mshf487afae5bf6c44p1ac229jsnc5e33d6f770f',
+			'X-RapidAPI-Host': 'nfl-api1.p.rapidapi.com'
+		}
+	};
 
-	const playTypes: PlayType[] = [];
-	summary.drives.previous.map((drive) => {
-		drive.plays.map((play) => {
-			if (!playTypes.some((pt) => pt.id == play.type.id)) {
-				playTypes.push(play.type);
-			}
-		});
-	});
+	try {
+		const response = await fetch(url, options);
+		const summary = (await response.json()) as GameSummary;
 
-	playTypes.sort(function (a, b) {
-		return Number(a.id) - Number(b.id);
-	});
+		if (summary.drives && summary.drives.previous) {
+			summary.drives.previous = summary.drives.previous.map((drive) => {
+				const newPlays = drive.plays.filter(
+					(play) => Number(play.type.id) != PlayTypes.OfficalTimeout
+				);
 
-	console.log('playTypes', playTypes);
+				return {
+					...drive,
+					plays: newPlays
+				};
+			});
 
-	return { gameSummary: summary } as unknown as { gameSummary: GameSummary };
+			const playTypes: PlayType[] = [];
+			summary.drives.previous.map((drive) => {
+				drive.plays.map((play) => {
+					if (!playTypes.some((pt) => pt.id == play.type.id)) {
+						playTypes.push(play.type);
+					}
+				});
+			});
+
+			playTypes.sort(function (a, b) {
+				return Number(a.id) - Number(b.id);
+			});
+
+			console.log('playTypes', playTypes);
+		}
+
+		return { gameSummary: summary };
+	} catch (error) {
+		console.error(error);
+		throw new Error('Fetch game failed');
+	}
 };

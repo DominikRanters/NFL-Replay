@@ -4,7 +4,7 @@
 
 	export let play: Play;
 
-	$: scoringPlayClass = play.scoringPlay ? 'bg-initial' : '';
+	$: scoringPlayClass = play.scoringPlay ? 'scoringPlay' : '';
 
 	const buildPlayHeadline = (): string => {
 		if (play.text.toUpperCase().includes('PENALTY')) {
@@ -12,10 +12,11 @@
 		}
 
 		switch (Number(play.type.id)) {
+			case PlayTypes.PassReception:
+				return `${play.statYardage} Yard Pass`;
 			case PlayTypes.Rush:
 			case PlayTypes.Sack:
 			case PlayTypes.KickoffReturn:
-			case PlayTypes.PassReception:
 			case PlayTypes.PassInterceptionReturn:
 			case PlayTypes.FumbleRecoveryOpponent:
 			case PlayTypes.PassingTouchdown:
@@ -49,13 +50,19 @@
 </script>
 
 <div class="flex card rounded-none p-2 {scoringPlayClass}">
-	<div class="w-24 flex-none bg-cyan">
+	<div class="w-24 flex-none">
 		<div>{play.start?.shortDownDistanceText || ''}</div>
 		<div class=" text-secondary-500">{play.start?.possessionText || ''}</div>
 		<div class=" text-secondary-500">{startTimeText}</div>
 	</div>
 	<div>
 		<h4 class="h4">{buildPlayHeadline()}</h4>
-		<div class=" text-secondary-500">{play.text}</div>
+		<div class="text-secondary-500">{play.text}</div>
 	</div>
 </div>
+
+<style>
+	.scoringPlay {
+		background: rgba(var(--color-scoring) / 1) !important;
+	}
+</style>

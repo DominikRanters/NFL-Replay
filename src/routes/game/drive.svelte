@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { headerText } from '$lib/stores';
 	import type { Drive, TeamSummary } from '../../models/game-summary';
 
 	export let drive: Drive;
@@ -10,10 +9,12 @@
 
 	$: homeScore = drive.plays[0]?.homeScore;
 	$: awayScore = drive.plays[0]?.awayScore;
+
+	$: scoringPlayClass = drive.isScore && drive.finished ? 'scoringPlay' : '';
 </script>
 
 {#if drive.plays.length > 0}
-	<div class="card rounded-none flex items-center sticky top-0">
+	<div class="card rounded-none flex items-center sticky top-0 {scoringPlayClass}">
 		<div class="p-2 h-16 w-16">
 			<img class="center" src={drive.team.logos[0]?.href} alt="Team_Img" />
 		</div>
@@ -35,3 +36,9 @@
 		</div>
 	</div>
 {/if}
+
+<style>
+	.scoringPlay {
+		background: rgba(var(--color-scoring) / 1) !important;
+	}
+</style>

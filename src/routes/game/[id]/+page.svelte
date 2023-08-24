@@ -7,9 +7,9 @@
 
 	export let data;
 	const { gameSummary } = data;
-	const orginalDrives = gameSummary.drives.previous;
+	const orginalDrives = gameSummary.drives?.previous || [];
 
-	const intervallDelay = 2000;
+	const intervallDelay = 100;
 
 	$: drives = [] as Drive[];
 	$: playIndex = 0;
@@ -19,10 +19,9 @@
 	onMount(() => {
 		const homeTeam = gameSummary.teams.find((t) => t.homeAway === 'home')?.team;
 		const awayTeam = gameSummary.teams.find((t) => t.homeAway === 'away')?.team;
-		headerText.set(`${homeTeam?.nickname} vs. ${awayTeam?.nickname}`);
+		headerText.set(`${homeTeam?.abbreviation} vs. ${awayTeam?.abbreviation}`);
 
 		interval = setInterval(() => {
-			console.log('🚀 ~ file: +page.svelte:25 ~ interval=setInterval ~ setInterval:', setInterval);
 			if (
 				drives.length > 0 &&
 				drives[0].plays.length < orginalDrives[drives.length - 1].plays.length
