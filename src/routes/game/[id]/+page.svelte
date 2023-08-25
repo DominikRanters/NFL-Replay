@@ -113,15 +113,15 @@
 
 	/* Colors  */
 	:global(.firstDown) {
-		color: yellowgreen !important;
+		color: rgba(120, 200, 30, 0.7) !important;
 	}
 	:global(.secondDown) {
-		color: rgba(255, 225, 0, 0.902) !important;
+		color: rgba(255, 235, 0, 0.75) !important;
 	}
 	:global(.thirdDown) {
-		color: rgb(255, 145, 0) !important;
+		color: rgba(255, 145, 0, 0.75) !important;
 	}
 	:global(.fourthDown) {
-		color: rgba(255, 48, 29, 0.972) !important;
+		color: rgba(255, 48, 29, 0.8) !important;
 	}
 </style>
