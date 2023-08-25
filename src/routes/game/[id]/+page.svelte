@@ -5,6 +5,7 @@
 	import DrivComponent from '../drive.svelte';
 	import { headerText } from '$lib/stores';
 	import ControlButtons from '$lib/components/ControlButtons.svelte';
+	import GameField from '$lib/components/GameField.svelte';
 
 	export let data;
 	const { gameSummary } = data;
@@ -84,6 +85,7 @@
 {#each drives as drive (drive.id)}
 	<div class="pb-10">
 		<DrivComponent {drive} teams={gameSummary.teams} />
+		<GameField />
 		{#each drive.plays as play (play.id)}
 			<div class="m-2">
 				<PlayListItem {play} />
