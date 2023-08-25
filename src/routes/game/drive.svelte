@@ -10,11 +10,37 @@
 	$: homeScore = drive.plays[0]?.homeScore;
 	$: awayScore = drive.plays[0]?.awayScore;
 
-	$: scoringPlayClass = drive.isScore && drive.finished ? 'scoringPlay' : '';
+	$: scoringPlayClass = () => {
+		if (drive.finished) {
+			if (drive.displayResult.toUpperCase().includes('TOUCHDOWN')) {
+				return 'touchdown';
+			}
+			if (drive.displayResult.toUpperCase().includes('FIELD GOAL')) {
+				return 'field-goal-good';
+			}
+			if (drive.displayResult.toUpperCase().includes('MISSED FG')) {
+				return 'field-goal-missed';
+			}
+			if (
+				['END OF GAME', 'END OF HALF'].some((title) =>
+					drive.displayResult.toUpperCase().includes(title)
+				)
+			) {
+				return 'timeout';
+			}
+			if (
+				['INTERCEPTION', 'FUMBLE'].some((title) =>
+					drive.displayResult.toUpperCase().includes(title)
+				)
+			) {
+				return 'turnover';
+			}
+		}
+	};
 </script>
 
 {#if drive.plays.length > 0}
-	<div class="card rounded-none flex items-center sticky top-0 {scoringPlayClass}">
+	<div class="card rounded-none flex items-center sticky top-0 {scoringPlayClass()}">
 		<div class="p-2 h-16 w-16">
 			<img class="center" src={drive.team.logos[0]?.href} alt="Team_Img" />
 		</div>
@@ -36,9 +62,3 @@
 		</div>
 	</div>
 {/if}
-
-<style>
-	.scoringPlay {
-		background: rgba(var(--color-scoring) / 1) !important;
-	}
-</style>

@@ -20,10 +20,10 @@ export const load = async ({ fetch, params }: LoadParam): Promise<{ gameSummary:
 	};
 
 	try {
-		const response = await fetch(url, options);
-		const summary = (await response.json()) as GameSummary;
+		// const response = await fetch(url, options);
+		// const summary = (await response.json()) as GameSummary;
 
-		// const summary = GameSummaryJson as unknown as GameSummary;
+		const summary = GameSummaryJson as unknown as GameSummary;
 
 		if (summary.drives && summary.drives.previous) {
 			summary.drives.previous = summary.drives.previous.map((drive) => {

@@ -4,9 +4,52 @@
 
 	export let play: Play;
 
-	$: scoringPlayClass = play.scoringPlay ? 'scoringPlay' : '';
+	$: scoringPlayClass = (): string => {
+		switch (Number(play.type.id)) {
+			case PlayTypes.PassingTouchdown:
+			case PlayTypes.RushingTouchdown:
+				return 'touchdown';
+			case PlayTypes.FieldGoalGood:
+				return 'field-goal-good';
+			case PlayTypes.FieldGoalMissed:
+				return 'field-goal-missed';
+			case PlayTypes.EndofGame:
+			case PlayTypes.EndofHalf:
+			case PlayTypes.Timeout:
+			case PlayTypes.TwoMinuteWarning:
+				return 'timeout';
+			case PlayTypes.FumbleRecoveryOpponent:
+			case PlayTypes.PassInterceptionReturn:
+				return 'turnover';
+			default:
+				return '';
+		}
+	};
+
+	$: downClass = (): string => {
+		if (play.start?.shortDownDistanceText?.includes('1st')) {
+			return 'firstDown';
+		}
+		if (play.start?.shortDownDistanceText?.includes('2nd')) {
+			return 'secondDown';
+		}
+		if (play.start?.shortDownDistanceText?.includes('3rd')) {
+			return 'thirdDown';
+		}
+		if (play.start?.shortDownDistanceText?.includes('4th')) {
+			return 'fourthDown';
+		}
+
+		return '';
+	};
 
 	const buildPlayHeadline = (): string => {
+		if (play.text.toUpperCase().includes('UNNECESSARY ROUGHBESS')) {
+			return `${play.statYardage} Unnecessary Roughness`;
+		}
+		if (play.text.toUpperCase().includes('PASS INTERFERENCE')) {
+			return `${play.statYardage} Yard Pass Interference`;
+		}
 		if (play.text.toUpperCase().includes('PENALTY')) {
 			return `${play.statYardage} Yard Penalty`;
 		}
@@ -49,9 +92,9 @@
 	const startTimeText = `${play.clock.displayValue} ${getQauterText(play.period.number)}`;
 </script>
 
-<div class="flex card rounded-none p-2 {scoringPlayClass}">
+<div class="flex card rounded-none p-2 {scoringPlayClass()}">
 	<div class="w-24 flex-none">
-		<div>{play.start?.shortDownDistanceText || ''}</div>
+		<div class={downClass()}>{play.start?.shortDownDistanceText || ''}</div>
 		<div class=" text-secondary-500">{play.start?.possessionText || ''}</div>
 		<div class=" text-secondary-500">{startTimeText}</div>
 	</div>
@@ -60,9 +103,3 @@
 		<div class="text-secondary-500">{play.text}</div>
 	</div>
 </div>
-
-<style>
-	.scoringPlay {
-		background: rgba(var(--color-scoring) / 1) !important;
-	}
-</style>

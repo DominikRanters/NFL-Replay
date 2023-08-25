@@ -10,7 +10,7 @@
 	const { gameSummary } = data;
 	const orginalDrives = gameSummary.drives?.previous || [];
 
-	const intervallDelay = 1000;
+	const intervallDelay = 2000;
 
 	$: isPause = false;
 	$: drives = [] as Drive[];
@@ -92,3 +92,36 @@
 	</div>
 {/each}
 <ControlButtons {isPause} {togglePause} />
+
+<style>
+	/* Background colors */
+	:global(.touchdown) {
+		background: rgba(var(--color-scoring) / 1) !important;
+	}
+	:global(.field-goal-good) {
+		background: rgba(var(--color-fiedl-foal-good) / 1) !important;
+	}
+	:global(.field-goal-missed) {
+		background: rgba(var(--color-field-goal-missed) / 1) !important;
+	}
+	:global(.timeout) {
+		background: rgba(var(--color-timeout) / 1) !important;
+	}
+	:global(.turnover) {
+		background: rgba(var(--color-turnover) / 1) !important;
+	}
+
+	/* Colors  */
+	:global(.firstDown) {
+		color: yellowgreen !important;
+	}
+	:global(.secondDown) {
+		color: rgba(255, 225, 0, 0.902) !important;
+	}
+	:global(.thirdDown) {
+		color: rgb(255, 145, 0) !important;
+	}
+	:global(.fourthDown) {
+		color: rgba(255, 48, 29, 0.972) !important;
+	}
+</style>
