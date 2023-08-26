@@ -1,5 +1,9 @@
 export interface Schedule {
-	[key: string]: { games: GameSchedule[] };
+	[key: string]: GaneDay;
+}
+
+export interface GaneDay {
+	games: GameSchedule[];
 }
 
 export interface GameSchedule {
@@ -10,6 +14,7 @@ export interface GameSchedule {
 	shortName: string;
 	season: Season;
 	competitions: Competitions[];
+	status: { type: { completed: boolean } };
 }
 
 interface Season {

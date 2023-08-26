@@ -1,11 +1,15 @@
 <script lang="ts">
 	import GameListItem from '$lib/components/GameListItem.svelte';
 	import { headerText } from '$lib/stores.js';
+	import type { GaneDay } from '../../models/schedule.js';
 
 	export let data;
 
 	const { schedule } = data;
 	const days = Object.values(schedule);
+
+	$: dayTextStyles = (day: GaneDay) =>
+		day.games.some((g) => g.status.type.completed) ? '' : 'opacity-30';
 
 	const formatDate = (date: Date | string) => {
 		const dateTemp = new Date(date);
@@ -23,7 +27,7 @@
 </script>
 
 {#each days as day}
-	<h2 class="h2 p-4">{formatDate(day.games[0].date)}</h2>
+	<h2 class="h2 p-4 {dayTextStyles(day)}">{formatDate(day.games[0].date)}</h2>
 
 	{#each day.games as game}
 		<div class="p-2">
