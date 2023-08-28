@@ -60,7 +60,7 @@
 			case PlayTypes.Rush:
 			case PlayTypes.Sack:
 			case PlayTypes.KickoffReturn:
-			case PlayTypes.PassInterceptionReturn:
+			case PlayTypes.PassInterceptionReturn: // Own case. Not no Gain Text
 			case PlayTypes.FumbleRecoveryOpponent:
 			case PlayTypes.PassingTouchdown:
 			case PlayTypes.RushingTouchdown:
