@@ -49,8 +49,6 @@ export const load = async ({ fetch, params }: LoadParam): Promise<{ gameSummary:
 			playTypes.sort(function (a, b) {
 				return Number(a.id) - Number(b.id);
 			});
-
-			console.log('playTypes', playTypes);
 		}
 
 		return { gameSummary: summary };

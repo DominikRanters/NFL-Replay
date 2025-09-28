@@ -2,16 +2,16 @@
 	import PlayListItem from '$lib/components/PlayListItem.svelte';
 	import { onDestroy, onMount } from 'svelte';
 	import type { Drive } from '../../../models/game-summary';
-	import DrivComponent from '../drive.svelte';
+	import DriveComponent from '../drive.svelte';
 	import { headerText } from '$lib/stores';
 	import ControlButtons from '$lib/components/ControlButtons.svelte';
-	import GameField from '$lib/components/GameField.svelte';
+	import FootballField from '$lib/components/FootballField.svelte';
 
 	export let data;
 	const { gameSummary } = data;
-	const orginalDrives = gameSummary.drives?.previous || [];
+	const originalDrives = gameSummary.drives?.previous || [];
 
-	const intervallDelay = 2000;
+	const intervalDelay = 2000;
 
 	$: isPause = false;
 	$: drives = [] as Drive[];
@@ -32,7 +32,7 @@
 		interval = setInterval(() => {
 			if (
 				drives.length > 0 &&
-				drives[0].plays.length < orginalDrives[drives.length - 1].plays.length
+				drives[0].plays.length < originalDrives[drives.length - 1].plays.length
 			) {
 				// Add next play to current drive
 				const tempDrives = [...drives];
@@ -42,21 +42,21 @@
 				const indexLastPlay = lastDrive.plays.length;
 
 				// set finished
-				const isLastPlay = indexLastPlay === orginalDrives[indexThisDrive].plays.length - 1;
+				const isLastPlay = indexLastPlay === originalDrives[indexThisDrive].plays.length - 1;
 				lastDrive.finished = isLastPlay;
 
 				// create and add next play
-				const nextPlay = orginalDrives[indexThisDrive].plays[indexLastPlay];
+				const nextPlay = originalDrives[indexThisDrive].plays[indexLastPlay];
 				lastDrive.plays = [nextPlay, ...lastDrive.plays];
 
 				drives = tempDrives;
-			} else if (drives.length < orginalDrives.length) {
+			} else if (drives.length < originalDrives.length) {
 				// Add next drive
 				const tempDrives = [...drives];
 				const indexLastDrive = tempDrives.length - 1;
 
 				// create and add next drive
-				const nextDrive = { ...orginalDrives[indexLastDrive + 1] };
+				const nextDrive = { ...originalDrives[indexLastDrive + 1] };
 				const nextDriveWithOutPlays: Drive = {
 					...nextDrive,
 					plays: []
@@ -66,7 +66,7 @@
 			} else {
 				clearInterval(interval);
 			}
-		}, intervallDelay);
+		}, intervalDelay);
 	};
 
 	onMount(() => {
@@ -84,8 +84,10 @@
 
 {#each drives as drive (drive.id)}
 	<div class="pb-10">
-		<DrivComponent {drive} teams={gameSummary.teams} />
-		<!-- <GameField /> -->
+		<DriveComponent {drive} teams={gameSummary.teams} />
+		{#if drive.plays.length > 0}
+			<FootballField {drive} teams={gameSummary.teams} />
+		{/if}
 		{#each drive.plays as play (play.id)}
 			<div class="m-2">
 				<PlayListItem {play} />

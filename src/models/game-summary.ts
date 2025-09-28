@@ -76,6 +76,7 @@ export interface Play {
 	priority: boolean;
 	statYardage: number;
 	start: PlayStart;
+	end: PlayEnd;
 	clock: { displayValue: string };
 	period: { number: number };
 	text: string;
@@ -85,6 +86,16 @@ export interface Play {
 interface PlayStart {
 	shortDownDistanceText?: string;
 	possessionText?: string;
+	yardLine: number;
+	yardsToEndzone: number;
+}
+
+interface PlayEnd {
+	distance: number;
+	yardLine: number;
+	team: { id: string };
+	down: number;
+	yardsToEndzone: number;
 }
 
 export interface PlayType {

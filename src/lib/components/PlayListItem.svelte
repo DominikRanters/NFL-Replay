@@ -74,8 +74,8 @@
 		}
 	};
 
-	const getQauterText = (quater: number): string => {
-		switch (quater) {
+	const getQuarterText = (quarter: number): string => {
+		switch (quarter) {
 			case 1:
 				return '1st';
 			case 2:
@@ -89,7 +89,7 @@
 		}
 	};
 
-	const startTimeText = `${play.clock.displayValue} ${getQauterText(play.period.number)}`;
+	const startTimeText = `${play.clock.displayValue} ${getQuarterText(play.period.number)}`;
 </script>
 
 <div class="flex card rounded-none p-2 {scoringPlayClass()}">
