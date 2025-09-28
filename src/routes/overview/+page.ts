@@ -1,7 +1,7 @@
 import type { Schedule } from '../../models/schedule';
 
 export const load = async ({ fetch }: any): Promise<{ schedule: Schedule }> => {
-	const url = 'https://nfl-api1.p.rapidapi.com/nflschedule?year=2019&month=11&day=17';
+	const url = 'https://nfl-api1.p.rapidapi.com/nflschedule?year=2025';
 	const options = {
 		method: 'GET',
 		headers: {

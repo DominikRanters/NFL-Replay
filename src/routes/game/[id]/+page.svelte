@@ -85,7 +85,7 @@
 {#each drives as drive (drive.id)}
 	<div class="pb-10">
 		<DrivComponent {drive} teams={gameSummary.teams} />
-		<GameField />
+		<!-- <GameField /> -->
 		{#each drive.plays as play (play.id)}
 			<div class="m-2">
 				<PlayListItem {play} />

@@ -1,4 +1,4 @@
-import { PlayTypes } from './play-types';
+import type { PlayTypes } from './play-types';
 
 export interface GameSummary {
 	id: number;
