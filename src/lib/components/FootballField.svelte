@@ -28,18 +28,34 @@
 		}
 
 		// Filter out ignored play types for arrow calculation
-		const validPlays = drive.plays.filter(
-			(play) => !IgnoredPlayTypes.includes(Number(play.type?.id))
-		);
+		const validPlays = drive.plays.filter((play) => {
+			// Check if play and type exist before accessing properties
+			if (!play || !play.type || !play.type.id) {
+				return false;
+			}
+
+			return !IgnoredPlayTypes.includes(Number(play.type.id));
+		});
 
 		if (validPlays.length === 0) {
 			return { startX: 50, endX: 260, visible: false };
 		}
 
 		// Arrow starts at the last valid play's start yard line (chronologically first)
-		const firstPlayStartYardLine = validPlays[validPlays.length - 1].start.yardLine;
-		// Arrow ends at the first valid play's end yard line (chronologically last)
-		const firstPlayEndYardLine = validPlays[0].end.yardLine;
+		const firstPlay = validPlays[validPlays.length - 1];
+		const lastPlay = validPlays[0];
+
+		// Validate that plays have required position data
+		if (!firstPlay || !firstPlay.start || typeof firstPlay.start.yardLine === 'undefined') {
+			return { startX: 50, endX: 260, visible: false };
+		}
+
+		if (!lastPlay || !lastPlay.end || typeof lastPlay.end.yardLine === 'undefined') {
+			return { startX: 50, endX: 260, visible: false };
+		}
+
+		const firstPlayStartYardLine = firstPlay.start.yardLine;
+		const firstPlayEndYardLine = lastPlay.end.yardLine;
 
 		// Convert yard lines to positions between the two "0" yard lines (x=8.33 to x=91.67)
 		// Map 0-100 yard lines to 8.33-91.67 SVG coordinates (10 field sections)
