@@ -1,6 +1,9 @@
 import type { Schedule } from '../../models/schedule';
+import { clearAllGameAccess } from '$lib/utils/gameAccessTimer';
 
 export const load = async ({ fetch }: any): Promise<{ schedule: Schedule }> => {
+	// Clear all game access timers when user visits overview
+	clearAllGameAccess();
 	const url = 'https://nfl-api1.p.rapidapi.com/nflschedule?year=2025';
 	const options = {
 		method: 'GET',

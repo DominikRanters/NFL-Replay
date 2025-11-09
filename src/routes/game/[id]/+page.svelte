@@ -6,6 +6,9 @@
 	import { headerText } from '$lib/stores';
 	import ControlButtons from '$lib/components/ControlButtons.svelte';
 	import FootballField from '$lib/components/FootballField.svelte';
+	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
+	import { checkGameAccess } from '$lib/utils/gameAccessTimer';
 
 	export let data;
 	const { gameSummary } = data;
@@ -17,6 +20,20 @@
 	$: drives = [] as Drive[];
 
 	let interval: ReturnType<typeof setInterval>;
+
+	/**
+	 * Checks if the current game access is still valid on the client side
+	 * Redirects to overview if access has expired
+	 */
+	const checkClientAccess = (): void => {
+		const gameId = $page.params.id;
+		if (gameId) {
+			const accessCheck = checkGameAccess(gameId);
+			if (!accessCheck.isValid) {
+				goto('/overview');
+			}
+		}
+	};
 
 	const togglePause = () => {
 		isPause = !isPause;
@@ -70,6 +87,9 @@
 	};
 
 	onMount(() => {
+		// Check access as a safety measure on client side
+		checkClientAccess();
+
 		const homeTeam = gameSummary.teams.find((t) => t.homeAway === 'home')?.team;
 		const awayTeam = gameSummary.teams.find((t) => t.homeAway === 'away')?.team;
 		headerText.set(`${homeTeam?.abbreviation} vs. ${awayTeam?.abbreviation}`);
