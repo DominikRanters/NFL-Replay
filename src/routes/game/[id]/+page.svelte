@@ -14,7 +14,7 @@
 	const { gameSummary } = data;
 	const originalDrives = gameSummary.drives?.previous || [];
 
-	const intervalDelay = 2000;
+	let speedMultiplier = 1;
 
 	$: isPause = false;
 	$: drives = [] as Drive[];
@@ -45,7 +45,65 @@
 		}
 	};
 
+	const adjustSpeed = () => {
+		if (speedMultiplier === 1) {
+			speedMultiplier = 1.5;
+		} else if (speedMultiplier === 1.5) {
+			speedMultiplier = 2;
+		} else {
+			speedMultiplier = 1;
+		}
+
+		// Restart interval with new speed if not paused
+		if (!isPause) {
+			clearInterval(interval);
+			intervalNextPlay();
+		}
+	};
+
+	const jumpToNextDrive = () => {
+		clearInterval(interval);
+
+		if (drives.length === 0) {
+			return;
+		}
+
+		const tempDrives = [...drives];
+		const currentDriveIndex = tempDrives.length - 1;
+		const currentDrive = tempDrives[0];
+		const originalDrive = originalDrives[currentDriveIndex];
+
+		// Complete current drive by adding all remaining plays
+		if (currentDrive.plays.length < originalDrive.plays.length) {
+			const remainingPlays = originalDrive.plays.slice(currentDrive.plays.length);
+			currentDrive.plays = [...remainingPlays.reverse(), ...currentDrive.plays];
+			currentDrive.finished = true;
+			tempDrives[0] = currentDrive;
+		}
+
+		// Start next drive if available
+		if (tempDrives.length < originalDrives.length) {
+			const nextDriveIndex = tempDrives.length;
+			const nextDrive = { ...originalDrives[nextDriveIndex] };
+			const nextDriveWithOutPlays: Drive = {
+				...nextDrive,
+				plays: []
+			};
+			drives = [nextDriveWithOutPlays, ...tempDrives];
+		} else {
+			drives = tempDrives;
+		}
+
+		// Resume playback if not paused
+		if (!isPause) {
+			intervalNextPlay();
+		}
+	};
+
 	const intervalNextPlay = () => {
+		// Calculate delay directly from speedMultiplier to avoid timing issues with reactive statements
+		const delayToUse = 2000 / speedMultiplier;
+
 		interval = setInterval(() => {
 			if (
 				drives.length > 0 &&
@@ -83,7 +141,7 @@
 			} else {
 				clearInterval(interval);
 			}
-		}, intervalDelay);
+		}, delayToUse);
 	};
 
 	onMount(() => {
@@ -115,7 +173,13 @@
 		{/each}
 	</div>
 {/each}
-<ControlButtons {isPause} {togglePause} />
+<ControlButtons
+	{isPause}
+	{togglePause}
+	currentSpeed={speedMultiplier}
+	onSpeedChange={adjustSpeed}
+	onNextDrive={jumpToNextDrive}
+/>
 
 <style>
 	/* Background colors */
