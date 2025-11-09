@@ -20,11 +20,11 @@
 
 	function calculateArrowPosition() {
 		if (!drive) {
-			return { startX: 50, endX: 260, visible: false };
+			return { startX: 50, endX: 260, visible: false, hasYardageChange: false };
 		}
 
 		if (!drive.plays || drive.plays.length === 0) {
-			return { startX: 50, endX: 260, visible: false };
+			return { startX: 50, endX: 260, visible: false, hasYardageChange: false };
 		}
 
 		// Filter out ignored play types for arrow calculation
@@ -37,32 +37,47 @@
 			return !IgnoredPlayTypes.includes(Number(play.type.id));
 		});
 
+		// Get the first play (chronologically) for start position - use any play if no valid plays
+		let firstPlay: Play;
+		let lastPlay: Play | null = null;
+
 		if (validPlays.length === 0) {
-			return { startX: 50, endX: 260, visible: false };
+			// Use the first play from all plays (even if ignored) for start position
+			firstPlay = drive.plays[drive.plays.length - 1]; // Chronologically first
+			// No valid plays means no yardage change
+		} else {
+			// Arrow starts at the last valid play's start yard line (chronologically first)
+			firstPlay = validPlays[validPlays.length - 1];
+			lastPlay = validPlays[0];
 		}
 
-		// Arrow starts at the last valid play's start yard line (chronologically first)
-		const firstPlay = validPlays[validPlays.length - 1];
-		const lastPlay = validPlays[0];
-
-		// Validate that plays have required position data
+		// Validate that first play has start position (required)
 		if (!firstPlay || !firstPlay.start || typeof firstPlay.start.yardLine === 'undefined') {
-			return { startX: 50, endX: 260, visible: false };
-		}
-
-		if (!lastPlay || !lastPlay.end || typeof lastPlay.end.yardLine === 'undefined') {
-			return { startX: 50, endX: 260, visible: false };
+			return { startX: 50, endX: 260, visible: false, hasYardageChange: false };
 		}
 
 		const firstPlayStartYardLine = firstPlay.start.yardLine;
-		const firstPlayEndYardLine = lastPlay.end.yardLine;
+
+		// For end position, use lastPlay.end if available, otherwise use firstPlay.start (no movement)
+		let firstPlayEndYardLine: number;
+		let hasYardageChange = false;
+
+		if (lastPlay && lastPlay.end && typeof lastPlay.end.yardLine !== 'undefined') {
+			// We have valid plays with an end position
+			firstPlayEndYardLine = lastPlay.end.yardLine;
+			hasYardageChange = firstPlayStartYardLine !== firstPlayEndYardLine;
+		} else {
+			// If no valid plays or no end position, use start position (no movement - show arrow head only)
+			firstPlayEndYardLine = firstPlayStartYardLine;
+			hasYardageChange = false;
+		}
 
 		// Convert yard lines to positions between the two "0" yard lines (x=8.33 to x=91.67)
 		// Map 0-100 yard lines to 8.33-91.67 SVG coordinates (10 field sections)
 		const startX = Math.max(8.33, Math.min(91.67, 8.33 + (firstPlayStartYardLine / 100) * 83.34));
 		const endX = Math.max(8.33, Math.min(91.67, 8.33 + (firstPlayEndYardLine / 100) * 83.34));
 
-		return { startX, endX, visible: true };
+		return { startX, endX, visible: true, hasYardageChange };
 	}
 
 	function calculateArrowDirection() {
@@ -317,17 +332,31 @@
 		<!-- Arrow -->
 		{#if arrowPosition.visible}
 			<g class="arrow-group">
-				<!-- Arrow line - full line from start to end -->
-				<line
-					x1={arrowPosition.startX}
-					y1="8"
-					x2={arrowPosition.endX}
-					y2="8"
-					stroke="white"
-					stroke-width="1.2"
-					opacity="0.9"
-				/>
-				<!-- Arrow head - always ends at arrowEnd mark -->
+				<!-- Arrow line - only show if yards have changed -->
+				{#if arrowPosition.hasYardageChange}
+					{#if arrowDirection === 'right'}
+						<line
+							x1={arrowPosition.startX}
+							y1="8"
+							x2={arrowPosition.endX - 1}
+							y2="8"
+							stroke="white"
+							stroke-width="1.2"
+							opacity="0.9"
+						/>
+					{:else}
+						<line
+							x1={arrowPosition.startX}
+							y1="8"
+							x2={arrowPosition.endX + 1}
+							y2="8"
+							stroke="white"
+							stroke-width="1.2"
+							opacity="0.9"
+						/>
+					{/if}
+				{/if}
+				<!-- Arrow head - always show when arrow is visible -->
 				{#if arrowDirection === 'right'}
 					<polygon
 						points="{arrowPosition.endX - 2},6 {arrowPosition.endX},8 {arrowPosition.endX - 2},10"

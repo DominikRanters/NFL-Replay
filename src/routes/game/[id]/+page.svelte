@@ -10,17 +10,16 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { checkGameAccess } from '$lib/utils/gameAccessTimer';
+	import { PlaybackController } from '$lib/utils/playbackController';
 
 	export let data;
 	const { gameSummary } = data;
 	const originalDrives = gameSummary.drives?.previous || [];
 
-	let speedMultiplier = 1;
-
-	$: isPause = false;
-	$: drives = [] as Drive[];
-
-	let interval: ReturnType<typeof setInterval>;
+	let drives: Drive[] = [];
+	let playbackController: PlaybackController;
+	let isPaused = false;
+	let currentSpeed = 1;
 
 	/**
 	 * Checks if the current game access is still valid on the client side
@@ -36,128 +35,46 @@
 		}
 	};
 
-	const togglePause = () => {
-		isPause = !isPause;
+	/**
+	 * Callback function for playback updates
+	 */
+	const handlePlaybackUpdate = (updatedDrives: Drive[]): void => {
+		drives = updatedDrives;
+	};
 
-		if (isPause) {
-			clearInterval(interval);
-		} else {
-			intervalNextPlay();
-		}
+	const togglePause = () => {
+		playbackController.togglePause();
+		isPaused = playbackController.isPaused();
 	};
 
 	const adjustSpeed = () => {
-		if (speedMultiplier === 1) {
-			speedMultiplier = 1.5;
-		} else if (speedMultiplier === 1.5) {
-			speedMultiplier = 2;
-		} else {
-			speedMultiplier = 1;
-		}
-
-		// Restart interval with new speed if not paused
-		if (!isPause) {
-			clearInterval(interval);
-			intervalNextPlay();
-		}
+		playbackController.adjustSpeed();
+		currentSpeed = playbackController.getSpeed();
 	};
 
 	const jumpToNextDrive = () => {
-		clearInterval(interval);
-
-		if (drives.length === 0) {
-			return;
-		}
-
-		const tempDrives = [...drives];
-		const currentDriveIndex = tempDrives.length - 1;
-		const currentDrive = tempDrives[0];
-		const originalDrive = originalDrives[currentDriveIndex];
-
-		// Complete current drive by adding all remaining plays
-		if (currentDrive.plays.length < originalDrive.plays.length) {
-			const remainingPlays = originalDrive.plays.slice(currentDrive.plays.length);
-			currentDrive.plays = [...remainingPlays.reverse(), ...currentDrive.plays];
-			currentDrive.finished = true;
-			tempDrives[0] = currentDrive;
-		}
-
-		// Start next drive if available
-		if (tempDrives.length < originalDrives.length) {
-			const nextDriveIndex = tempDrives.length;
-			const nextDrive = { ...originalDrives[nextDriveIndex] };
-			const nextDriveWithOutPlays: Drive = {
-				...nextDrive,
-				plays: []
-			};
-			drives = [nextDriveWithOutPlays, ...tempDrives];
-		} else {
-			drives = tempDrives;
-		}
-
-		// Resume playback if not paused
-		if (!isPause) {
-			intervalNextPlay();
-		}
-	};
-
-	const intervalNextPlay = () => {
-		// Calculate delay directly from speedMultiplier to avoid timing issues with reactive statements
-		const delayToUse = 2000 / speedMultiplier;
-
-		interval = setInterval(() => {
-			if (
-				drives.length > 0 &&
-				drives[0].plays.length < originalDrives[drives.length - 1].plays.length
-			) {
-				// Add next play to current drive
-				const tempDrives = [...drives];
-
-				const lastDrive = tempDrives[0];
-				const indexThisDrive = tempDrives.length - 1;
-				const indexLastPlay = lastDrive.plays.length;
-
-				// set finished
-				const isLastPlay = indexLastPlay === originalDrives[indexThisDrive].plays.length - 1;
-				lastDrive.finished = isLastPlay;
-
-				// create and add next play
-				const nextPlay = originalDrives[indexThisDrive].plays[indexLastPlay];
-				lastDrive.plays = [nextPlay, ...lastDrive.plays];
-
-				drives = tempDrives;
-			} else if (drives.length < originalDrives.length) {
-				// Add next drive
-				const tempDrives = [...drives];
-				const indexLastDrive = tempDrives.length - 1;
-
-				// create and add next drive
-				const nextDrive = { ...originalDrives[indexLastDrive + 1] };
-				const nextDriveWithOutPlays: Drive = {
-					...nextDrive,
-					plays: []
-				};
-
-				drives = [nextDriveWithOutPlays, ...tempDrives];
-			} else {
-				clearInterval(interval);
-			}
-		}, delayToUse);
+		playbackController.jumpToNextDrive();
 	};
 
 	onMount(() => {
 		// Check access as a safety measure on client side
 		checkClientAccess();
 
-		const homeTeam = gameSummary.teams.find((t) => t.homeAway === 'home')?.team;
-		const awayTeam = gameSummary.teams.find((t) => t.homeAway === 'away')?.team;
-		headerText.set(`${homeTeam?.abbreviation} vs. ${awayTeam?.abbreviation}`);
+		headerText.set('');
 
-		intervalNextPlay();
+		// Initialize playback controller
+		playbackController = new PlaybackController(originalDrives, handlePlaybackUpdate);
+		playbackController.start();
+
+		// Initialize reactive state variables
+		isPaused = playbackController.isPaused();
+		currentSpeed = playbackController.getSpeed();
 	});
 
 	onDestroy(() => {
-		clearInterval(interval);
+		if (playbackController) {
+			playbackController.stop();
+		}
 	});
 </script>
 
@@ -177,9 +94,9 @@
 	</div>
 {/each}
 <ControlButtons
-	{isPause}
+	isPause={isPaused}
 	{togglePause}
-	currentSpeed={speedMultiplier}
+	{currentSpeed}
 	onSpeedChange={adjustSpeed}
 	onNextDrive={jumpToNextDrive}
 />

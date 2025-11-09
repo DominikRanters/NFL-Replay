@@ -40,7 +40,7 @@
 </script>
 
 {#if drive.plays.length > 0}
-	<div class="card rounded-none flex items-center sticky top-0 {scoringPlayClass()}">
+	<div class="card rounded-none flex items-center sticky top-0 pl-2 pr-4 {scoringPlayClass()}">
 		<div class="p-2 h-16 w-16">
 			<img class="center" src={drive.team.logos[0]?.href} alt="Team_Img" />
 		</div>

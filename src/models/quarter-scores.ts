@@ -9,5 +9,12 @@ export interface QuarterScores {
 	away: number[];
 	/** Array of quarter numbers that have started (1-4) */
 	quartersStarted: number[];
+	/** Points scored by home team in overtime (0 if no OT) */
+	homeOT: number;
+	/** Points scored by away team in overtime (0 if no OT) */
+	awayOT: number;
+	/** Whether the game went to overtime */
+	hasOvertime: boolean;
+	/** Current quarter number (1-4 for regulation, 5+ for OT) */
+	currentQuarter: number;
 }
-
