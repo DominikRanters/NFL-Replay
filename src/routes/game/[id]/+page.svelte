@@ -6,6 +6,7 @@
 	import { headerText } from '$lib/stores';
 	import ControlButtons from '$lib/components/ControlButtons.svelte';
 	import FootballField from '$lib/components/FootballField.svelte';
+	import QuarterScoreDisplay from '$lib/components/QuarterScoreDisplay.svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { checkGameAccess } from '$lib/utils/gameAccessTimer';
@@ -160,7 +161,9 @@
 	});
 </script>
 
-{#each drives as drive (drive.id)}
+<QuarterScoreDisplay {drives} teams={gameSummary.teams} />
+
+{#each drives as drive, index (drive.id)}
 	<div class="pb-10">
 		<DriveComponent {drive} teams={gameSummary.teams} />
 		{#if drive.plays.length > 0}
