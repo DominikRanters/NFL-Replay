@@ -171,7 +171,7 @@
 		{/if}
 		{#each drive.plays as play (play.id)}
 			<div class="m-2">
-				<PlayListItem {play} />
+				<PlayListItem {play} {drive} />
 			</div>
 		{/each}
 	</div>

@@ -1,8 +1,9 @@
 <script lang="ts">
-	import type { Play } from '../../models/game-summary';
+	import type { Play, Drive } from '../../models/game-summary';
 	import { PlayTypes } from '../../models/play-types';
 
 	export let play: Play;
+	export let drive: Drive;
 
 	$: scoringPlayClass = (): string => {
 		switch (Number(play.type.id)) {
@@ -43,35 +44,115 @@
 		return '';
 	};
 
-	const buildPlayHeadline = (): string => {
-		if (play.text.toUpperCase().includes('UNNECESSARY ROUGHBESS')) {
-			return `${play.statYardage} Unnecessary Roughness`;
-		}
-		if (play.text.toUpperCase().includes('PASS INTERFERENCE')) {
-			return `${play.statYardage} Yard Pass Interference`;
-		}
-		if (play.text.toUpperCase().includes('PENALTY')) {
-			return `${play.statYardage} Yard Penalty`;
+	const parsePenalty = (text: string): { isAccepted: boolean; yards: number; team: string } | null => {
+		if (!text.toUpperCase().includes('PENALTY')) {
+			return null;
 		}
 
+		const isDeclined = text.toLowerCase().includes('declined');
+		const isAccepted = !isDeclined && (text.includes('enforced') || text.includes('- No Play'));
+
+		// Extract yards: look for pattern like "10 yards, enforced" or "5 yards, enforced"
+		const yardsMatch = text.match(/(\d+)\s*yards?,\s*enforced/i);
+		const yards = yardsMatch ? parseInt(yardsMatch[1]) : Math.abs(play.statYardage);
+
+		// Extract team abbreviation: "PENALTY on LV-" or "PENALTY on DEN-"
+		const teamMatch = text.match(/PENALTY on ([A-Z]{2,3})-/i);
+		const team = teamMatch ? teamMatch[1] : '';
+
+		return {
+			isAccepted,
+			yards,
+			team
+		};
+	};
+
+	const parseFumble = (text: string): { team: string } | null => {
+		if (!text.toUpperCase().includes('FUMBLES')) {
+			return null;
+		}
+
+		// Look for team abbreviation near FUMBLES or RECOVERED by
+		// Pattern: "RECOVERED by LV-" or team info in context
+		const recoveredMatch = text.match(/RECOVERED by ([A-Z]{2,3})-/i);
+		if (recoveredMatch) {
+			return { team: recoveredMatch[1] };
+		}
+
+		// Try to extract from FUMBLES context - look for pattern before FUMBLES
+		// The team that fumbled is usually the offensive team
+		const fumbleMatch = text.match(/([A-Z]{2,3})-\w+.*FUMBLES/i);
+		if (fumbleMatch) {
+			return { team: fumbleMatch[1] };
+		}
+
+		// Fallback: use drive team
+		return { team: drive.team.abbreviation };
+	};
+
+	const parseFieldGoalYards = (text: string): number | null => {
+		// Pattern: "32 yard field goal" or "59 yard field goal"
+		const match = text.match(/(\d+)\s*yard\s*field\s*goal/i);
+		return match ? parseInt(match[1]) : null;
+	};
+
+	const buildPlayHeadline = (): string => {
+		// Priority 1: Check for accepted penalty
+		const penalty = parsePenalty(play.text);
+		if (penalty && penalty.isAccepted && penalty.team) {
+			return `Penalty ${penalty.yards} Yards (${penalty.team})`;
+		}
+
+		// Priority 2: Check for fumble (combine with original play if applicable)
+		const fumble = parseFumble(play.text);
+		
+		// Priority 3: Check for field goal with yardage
+		const fieldGoalYards = parseFieldGoalYards(play.text);
+		if (fieldGoalYards !== null) {
+			if (Number(play.type.id) === PlayTypes.FieldGoalMissed) {
+				return `${fieldGoalYards} Yard Field Goal Missed`;
+			}
+			if (Number(play.type.id) === PlayTypes.FieldGoalGood) {
+				return `${fieldGoalYards} Yard Field Goal`;
+			}
+		}
+
+		// Build base play headline for regular plays
+		let baseHeadline = '';
+		
 		switch (Number(play.type.id)) {
 			case PlayTypes.PassReception:
-				return `${play.statYardage} Yard Pass`;
+				baseHeadline = `${play.statYardage} Yard Pass`;
+				break;
 			case PlayTypes.Rush:
 			case PlayTypes.Sack:
 			case PlayTypes.KickoffReturn:
-			case PlayTypes.PassInterceptionReturn: // Own case. Not no Gain Text
+			case PlayTypes.PassInterceptionReturn:
 			case PlayTypes.FumbleRecoveryOpponent:
 			case PlayTypes.PassingTouchdown:
 			case PlayTypes.RushingTouchdown:
 				if (play.statYardage == 0) {
-					return 'No Gain';
+					baseHeadline = 'No Gain';
+				} else {
+					baseHeadline = `${play.statYardage} Yard ${play.type.text}`;
 				}
-				return `${play.statYardage} Yard ${play.type.text}`;
-
+				break;
+			case PlayTypes.FieldGoalGood:
+				baseHeadline = 'Field Goal';
+				break;
+			case PlayTypes.FieldGoalMissed:
+				baseHeadline = 'Field Goal Missed';
+				break;
 			default:
-				return play.type.text;
+				baseHeadline = play.type.text;
 		}
+
+		// Add fumble to base headline if present
+		if (fumble && fumble.team) {
+			return `${baseHeadline} + Fumble (${fumble.team})`;
+		}
+
+		return baseHeadline;
 	};
 
 	const getQuarterText = (quarter: number): string => {
